@@ -27,8 +27,8 @@ interface PrimitiveTypeLookup {
     'core::integer::u8': { inputs: number; outputs: number };
     'core::integer::u16': { inputs: number; outputs: number };
     'core::integer::u32': { inputs: number; outputs: number };
-    'core::integer::u64': { inputs: number; outputs: number };
-    'core::integer::u128': { inputs: number; outputs: number };
+    'core::integer::u64': { inputs: bigint; outputs: bigint };
+    'core::integer::u128': { inputs: bigint; outputs: bigint };
     'core::integer::u256': { inputs: Uint256; outputs: Uint256 };
     'core::integer::u512': { inputs: Uint512; outputs: Uint512 };
     'core::array::Array<T>': { inputs: 'T[]'; outputs: 'T[]' };

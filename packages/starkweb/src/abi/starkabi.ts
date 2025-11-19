@@ -33,8 +33,28 @@ export function parseStarknetAbi<const T extends readonly any[]>(abi: T): {
         });
         break;
       case 'interface':
-        functions.push(...item.items.filter((item: { type: string; }): item is StarknetAbiFunction<T[number]['name']> => item.type === 'function'));
-        events.push(...item.items.filter((item: { type: string; }): item is StarknetAbiEvent => item.type === 'event'));
+        // Parse functions from interface to ensure inputs/outputs are properly typed
+        const interfaceFunctions = item.items
+          .filter((i: any) => i.type === 'function')
+          .map((f: any) => ({
+            type: 'function' as const,
+            name: f.name,
+            inputs: f.inputs?.map(parseAbiParameter) || [],
+            outputs: f.outputs?.map(parseAbiParameter) || []
+          }));
+        functions.push(...interfaceFunctions);
+
+        const interfaceEvents = item.items
+          .filter((i: any) => i.type === 'event')
+          .map((e: any) => ({
+            type: 'event' as const,
+            name: e.name,
+            inputs: e.inputs?.map(parseAbiParameter) || [],
+            kind: 'enum' as const,
+            variants: []
+          }));
+        events.push(...interfaceEvents);
+
         interfaces.push({
           name: item.name,
           items: item.items?.map(parseAbiParameter) || []
@@ -73,7 +93,12 @@ function parseAbiParameter(param: any): AbiParameter {
 }
 
 
-function parseType(typeStr: string): StarknetType {
+export function parseType(typeStr: string | StarknetType): StarknetType {
+    // If already a parsed type object, return it
+    if (typeof typeStr === 'object') {
+      return typeStr;
+    }
+
     // Handle core::array::Array::<T> syntax
     if (typeStr.startsWith('core::array::Array::<')) {
       const elementType = typeStr
@@ -84,13 +109,7 @@ function parseType(typeStr: string): StarknetType {
         elementType: parseType(elementType) as StarknetCoreType
       };
     }
-    
-    // Handle struct references
-    if (typeStr.includes('::')) {
-      return { type: 'struct', name: typeStr, members: [] };
-    }
-    
-    
+
     // Existing array handling
     if (typeStr.endsWith('*')) {
       const baseType = typeStr.slice(0, -1);
@@ -99,7 +118,29 @@ function parseType(typeStr: string): StarknetType {
         elementType: parseBaseType(baseType)
       };
     }
-    
+
+    // Check if it's a known primitive type (even with core:: prefix)
+    const primitiveTypes = [
+      'bool', 'core::bool',
+      'felt', 'felt252', 'core::felt252',
+      'u8', 'core::integer::u8',
+      'u16', 'core::integer::u16',
+      'u32', 'core::integer::u32',
+      'u64', 'core::integer::u64',
+      'u128', 'core::integer::u128',
+      'u256', 'core::integer::u256', 'uint256',
+      'contract_address', 'core::starknet::contract_address::ContractAddress'
+    ];
+
+    if (primitiveTypes.includes(typeStr)) {
+      return parseBaseType(typeStr);
+    }
+
+    // Handle struct references (types with :: that aren't primitives)
+    if (typeStr.includes('::')) {
+      return { type: 'struct', name: typeStr, members: [] };
+    }
+
     return parseBaseType(typeStr);
   }
 

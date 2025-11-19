@@ -78,6 +78,24 @@ export function decodeCoreType(
         throw new Error('Invalid Bool value');
       }
       return [values[offset]?.toNumber() !== 0, offset + 1];
+    case 'u8':
+    case 'core::integer::u8':
+    case 'u16':
+    case 'core::integer::u16':
+    case 'u32':
+    case 'core::integer::u32':
+      if (!values[offset]) {
+        throw new Error(`Invalid ${type} value`);
+      }
+      return [values[offset]?.toNumber() || 0, offset + 1];
+    case 'u64':
+    case 'core::integer::u64':
+    case 'u128':
+    case 'core::integer::u128':
+      if (!values[offset]) {
+        throw new Error(`Invalid ${type} value`);
+      }
+      return [BigInt(values[offset]?.toString() || '0'), offset + 1];
     case 'u256':
     case 'core::integer::u256':
     case 'uint256':

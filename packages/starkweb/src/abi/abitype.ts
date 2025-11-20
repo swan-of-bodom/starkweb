@@ -34,8 +34,8 @@ interface PrimitiveTypeLookup {
     'core::integer::i64': { inputs: bigint; outputs: bigint };
     'core::integer::u128': { inputs: bigint; outputs: bigint };
     'core::integer::i128': { inputs: bigint; outputs: bigint };
-    'core::integer::u256': { inputs: Uint256; outputs: Uint256 };
-    'core::integer::u512': { inputs: Uint512; outputs: Uint512 };
+    'core::integer::u256': { inputs: Uint256; outputs: bigint };
+    'core::integer::u512': { inputs: Uint512; outputs: bigint };
     'core::array::Array<T>': { inputs: 'T[]'; outputs: 'T[]' };
     'core::bool': { inputs: boolean; outputs: boolean };
     'core::starknet::contract_address::ContractAddress': { inputs: Address; outputs: Address };
